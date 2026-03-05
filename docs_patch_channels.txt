@@ -1,0 +1,22 @@
+// Refactoring the README to reflect the final 16-channel array assignments
+// Patching README_REALFRONT.md
+
+/*
+### The 16-Channel Dictionary (REVISED & FINALIZED):
+*   `[0]` **Seismic (USGS):** Fractures terrain, severs roads, increases A* base costs.
+*   `[1]` **Thermal (NASA FIRMS):** Burns down forests, visible in FLIR/Thermal WebGL lenses.
+*   `[2]` **Cyber (NetBlocks):** Jams minimaps, severs player command-and-control.
+*   `[3]` **Orbital (GPS/Starlink):** Dictates Cruise Missile precision (CEP drift).
+*   `[4]` **Wind U Vector (NOAA):** Pushes radiation and smoke East/West.
+*   `[5]` **Wind V Vector (NOAA):** Pushes radiation and smoke North/South.
+*   `[6]` **CBRN Radiation:** Deals massive unmitigable damage to Infantry.
+*   `[7]` **Civil Unrest (ACLED):** Halts city production, crushes defending troop morale.
+*   `[8]` **Maritime (AIS):** Determines global shipping health; blockades crash coastal economies.
+*   `[9]` **Economy (Polymarket):** Global panic spikes the cost of Heavy Armor and Naval units.
+*   `[10]` **Combat Zone (ACLED):** Severe spikes spawn Hostile Neutral AI Rogue Armies.
+*   `[11]` **Recon (OpenSky):** Real-world military flights lift the Fog of War.
+*   `[12]` **Precipitation (Open-Meteo):** Heavy rain creates mud, paralyzing Tanks.
+*   `[13]` **Extreme Cold:** Freezes un-garrisoned Infantry to death.
+*   `[14]` **Biological (WHO):** Disease outbreaks infect infantry, causing attrition damage.
+*   `[15]` **Space Weather (NOAA Kp):** Geomagnetic storms disable radar and ground aircraft.
+*/
