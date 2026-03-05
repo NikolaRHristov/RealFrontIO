@@ -1,0 +1,33 @@
+// Appending to multiLensFrag from Batch 10
+// We add a new "CLIMATE LENS" (Lens ID 5)
+
+/*
+    // --- CLIMATE LENS (Reads Block C/D for Weather) ---
+    if (uActiveLens == 5) {
+        // Block D would be mapped to Channels 12-15
+        vec4 blockD = texture2D(uDataBlockD, vTextureCoord); 
+        float precip = blockD.r; // Channel 12
+        float cold = blockD.g;   // Channel 13
+
+        // Base color is desaturated
+        vec3 color = vec3(0.1, 0.15, 0.1); 
+
+        if (precip > 0.1) {
+            if (cold > 0.1) {
+                // Blizzard (White/Cyan)
+                color = mix(color, vec3(0.8, 0.9, 1.0), precip);
+            } else {
+                // Torrential Rain / Mud (Dark Brown/Blue)
+                color = mix(color, vec3(0.0, 0.2, 0.6), precip);
+            }
+        }
+
+        if (cold > 0.5) {
+            // Overlay an icy vignette on frozen WGS84 tiles
+            color += vec3(0.0, 0.1, 0.3) * cold;
+        }
+
+        gl_FragColor = vec4(color, 1.0);
+        return;
+    }
+*/
