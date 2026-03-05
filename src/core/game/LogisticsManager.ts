@@ -1,48 +1,42 @@
-import { UnitImpl } from './UnitImpl';
-import { PlayerImpl } from './PlayerImpl';
+import { UnitImpl, UnitType } from './UnitImpl';
 
 export class LogisticsManager {
-    // Driven by real-world Brent Crude / OPEC data
-    public static globalOilPriceMultiplier: number = 1.0;
-
     /**
-     * Updates the global cost of moving heavy machinery.
+     * Tanks and vehicles burn fuel per tile moved.
+     * If they hit 0, they physically cannot be issued move commands.
      */
-    public static updateOilPrice(opecMultiplier: number) {
-        this.globalOilPriceMultiplier = opecMultiplier;
+    public static processFuelBurn(unit: UnitImpl, distanceMoved: number) {
+        // Infantry don't burn fuel. Base bases/turrets don't move.
+        if (unit.type === 'INFANTRY' || unit.type === 'HQ') return;
+
+        // Base burn rate
+        let burnRate = 0.5;
+        
+        // Heavy armor burns more
+        if (unit.type === 'HEAVY_ARMOR') burnRate = 1.5;
+
+        // Apply burn
+        (unit as any).currentFuel = ((unit as any).currentFuel || 100) - (distanceMoved * burnRate);
+
+        if ((unit as any).currentFuel <= 0) {
+            (unit as any).currentFuel = 0;
+            (unit as any).isImmobilized = true;
+            // The client will render a red "Out of Fuel" icon over the unit
+        }
     }
 
     /**
-     * Processes fuel consumption for mechanized units.
-     * Called every game tick.
+     * Fuel trucks can refill nearby immobilized vehicles.
      */
-    public static processFuelConsumption(units: UnitImpl[], player: PlayerImpl) {
-        for (const unit of units) {
-            // Only mechanized units use fuel
-            if (unit.type === 'ARMOR' || unit.type === 'AIRCRAFT' || unit.type === 'NAVAL') {
-                
-                if (unit.isMoving) {
-                    unit.fuel -= 1; // Base consumption rate
-                }
-                
-                if (unit.fuel <= 0) {
-                    unit.speed = 0; // Unit is stranded. Armor becomes static pillboxes. Aircraft crash.
-                    if (unit.type === 'AIRCRAFT') {
-                        unit.hp = 0; // Out of fuel mid-air = destroyed
-                    }
-                }
+    public static executeResupply(truck: UnitImpl, targets: UnitImpl[]) {
+        if (truck.type !== 'SUPPLY_TRUCK') return;
 
-                // Resupply Logic: If unit is on a friendly road network or inside a city
-                if (unit.fuel < unit.maxFuel && (unit.isOnFriendlySupplyLine || unit.garrisonedCityId)) {
-                    // Refueling drains the player's treasury. 
-                    // If real-world oil prices spike, players literally cannot afford to move their tanks.
-                    const fuelCost = 5 * this.globalOilPriceMultiplier;
-                    
-                    if (player.money >= fuelCost) {
-                        player.money -= fuelCost;
-                        unit.fuel += 10;
-                    }
-                }
+        for (const target of targets) {
+            const dist = Math.hypot(target.x - truck.x, target.y - truck.y);
+            if (dist <= 2.0 && (target as any).isImmobilized) {
+                (target as any).currentFuel = 100;
+                (target as any).isImmobilized = false;
+                console.log(`[LOGISTICS] Unit ${target.id} refueled by Supply Truck ${truck.id}.`);
             }
         }
     }
