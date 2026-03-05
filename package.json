@@ -5,12 +5,28 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "start": "turbo run start",
-    "lint": "turbo run lint"
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --ignore-unknown --write .",
+    "prepare": "husky"
   },
   "devDependencies": {
     "turbo": "^1.11.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.7.2",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "husky": "^9.1.7",
+    "prettier": "^3.5.3",
+    "eslint": "^9.21.0",
+    "lint-staged": "^16.1.2",
+    "@eslint/js": "^9.21.0",
+    "eslint-config-prettier": "^10.1.1"
+  },
+  "lint-staged": {
+    "**/*": [
+      "eslint --fix",
+      "prettier --ignore-unknown --write"
+    ]
   },
   "workspaces": [
     "apps/*",
