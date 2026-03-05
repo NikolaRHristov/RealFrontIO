@@ -1,68 +1,44 @@
-import { GameImpl } from './GameImpl';
-import { PlayerImpl } from './PlayerImpl';
-
 export class DefconManager {
     public static currentDefcon: number = 5;
+    
+    // A sliding scalar from 0.0 (Peace) to 1.0 (Armageddon)
+    public static globalTension: number = 0.0; 
 
     /**
-     * Receives the parsed DEFCON integer from the Rust gRPC stream
+     * Analyzes global data to calculate the DEFCON level.
+     * DEFCON 1 unlocks ICBMs and strategic bombers.
+     * DEFCON 5 restricts players to infantry and light armor.
      */
-    public static updateDefconState(newLevel: number, game: GameImpl) {
-        if (this.currentDefcon === newLevel) return;
+    public static evaluateGlobalTension(
+        totalUnitsKilled: number, 
+        acledUnrestSum: number, 
+        nuclearLaunches: number
+    ) {
+        // Base tension derived from real-world ACLED data (Channel 10)
+        let newTension = acledUnrestSum * 0.01;
+        
+        // In-game casualties increase tension
+        newTension += (totalUnitsKilled * 0.001);
+        
+        // Nuclear launches instantly spike tension to max
+        newTension += (nuclearLaunches * 0.5);
 
-        console.warn(`[DEFCON] Global Threat Level shifted to DEFCON ${newLevel}`);
-        this.currentDefcon = newLevel;
+        // Clamp between 0 and 1
+        this.globalTension = Math.max(0.0, Math.min(1.0, newTension));
 
-        // Broadcast the terrifying UI alert to all players
-        game.broadcastToPlayers({
-            type: 'DEFCON_ALERT',
-            level: newLevel,
-            message: this.getDefconMessage(newLevel)
-        });
-
-        // Apply fundamental engine rule changes based on DEFCON
-        this.applyRulesOfEngagement(game.getPlayers());
+        // Map scalar to DEFCON level (1 to 5, inverted so 1 is max tension)
+        if (this.globalTension >= 0.9) this.setDefcon(1);
+        else if (this.globalTension >= 0.7) this.setDefcon(2);
+        else if (this.globalTension >= 0.5) this.setDefcon(3);
+        else if (this.globalTension >= 0.3) this.setDefcon(4);
+        else this.setDefcon(5);
     }
 
-    private static getDefconMessage(level: number): string {
-        switch(level) {
-            case 1: return "NUCLEAR RELEASE AUTHORIZED. MAXIMUM FORCE REQUIRED.";
-            case 2: return "ARMED FORCES AT MAXIMUM READINESS. MOBILIZATION COSTS HALVED.";
-            case 3: return "FORCE READINESS INCREASED. LOGISTICS NETWORKS OVERDRIVEN.";
-            case 4: return "ABOVE NORMAL INTELLIGENCE GATHERING.";
-            case 5: return "NORMAL PEACETIME READINESS.";
-            default: return "";
-        }
-    }
-
-    private static applyRulesOfEngagement(players: PlayerImpl[]) {
-        for (const player of players) {
-            switch(this.currentDefcon) {
-                case 1:
-                    // DEFCON 1: The Apocalypse
-                    // Nuclear silos are unlocked. Missiles are instantly built.
-                    player.unlockTech('ICBM_PROTOCOL');
-                    player.productionMultiplier = 5.0; // Desperation manufacturing
-                    break;
-                case 2:
-                    // DEFCON 2: Brinksmanship
-                    // Tanks and hardware are 50% cheaper
-                    player.unitCostMultiplier = 0.5;
-                    player.productionMultiplier = 2.0;
-                    break;
-                case 3:
-                    // DEFCON 3: Accelerated Logistics
-                    // Troops move 25% faster
-                    player.movementSpeedMultiplier = 1.25;
-                    break;
-                case 5:
-                    // Back to normal
-                    player.unitCostMultiplier = 1.0;
-                    player.movementSpeedMultiplier = 1.0;
-                    player.productionMultiplier = 1.0;
-                    player.lockTech('ICBM_PROTOCOL'); // Relock nukes
-                    break;
-            }
+    private static setDefcon(level: number) {
+        if (this.currentDefcon !== level) {
+            this.currentDefcon = level;
+            // Push to Global Ticker UI
+            // EventTicker.pushEvent("STRATCOM", `GLOBAL TENSION ELEVATED. DEFCON LEVEL SHIFTED TO ${level}.`);
         }
     }
 }
