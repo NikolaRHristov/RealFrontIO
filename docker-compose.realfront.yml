@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  realfront-capsule:
+    build: 
+      context: ./capsule
+    environment:
+      - RUST_LOG=info
+    ports:
+      - "50051:50051"
+    networks:
+      - realfront-net
+
+  realfront-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - CAPSULE_GRPC_HOST=realfront-capsule:50051
+      - GAME_ENV=prod
+    ports:
+      - "8080:8080" # WebSocket Server
+      - "5173:5173" # Vite Dev Server (Optional)
+    depends_on:
+      - realfront-capsule
+    networks:
+      - realfront-net
+
+networks:
+  realfront-net:
+    driver: bridge
