@@ -6,6 +6,9 @@ use tonic::{transport::Server, Request, Response, Status};
 mod geo;
 mod ingest;
 mod multiplexer;
+mod source_tier;
+mod entity_extractor;
+mod parsers_news;
 
 use ingest::pb::{world_monitor_streamer_server::{WorldMonitorStreamer, WorldMonitorStreamerServer}, SubscribeRequest, TickEventBatch};
 
