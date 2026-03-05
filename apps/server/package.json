@@ -1,0 +1,20 @@
+{
+  "name": "@realfront/server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@realfront/core": "*",
+    "ws": "^8.13.0",
+    "@grpc/grpc-js": "^1.8.0",
+    "@grpc/proto-loader": "^0.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node-dev": "^2.0.0"
+  }
+}
