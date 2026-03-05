@@ -1,0 +1,11 @@
+// Refactoring SeismicManager to trigger Tsunamis
+import { TsunamiManager } from './TsunamiManager';
+// ... inside SeismicManager.ts ...
+/*
+    public static resolveTectonicDeformation(...) {
+        // existing deformation logic...
+        
+        // REFACTOR: Check if this triggers a Tsunami
+        TsunamiManager.propagateTsunami(centerX, centerY, severity, terrainMap, gameMap, game.getUnits());
+    }
+*/
