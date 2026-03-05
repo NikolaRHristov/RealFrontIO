@@ -1,11 +1,10 @@
 import { TerrainSearchMap } from './TerrainSearchMap';
 import { GameImpl } from './GameImpl';
+import { TsunamiManager } from './TsunamiManager';
 
 export class SeismicManager {
     /**
      * Translates a massive WGS84 earthquake into permanent topological destruction.
-     * Unlike fires which burn forests, earthquakes destroy human infrastructure
-     * and permanently fracture the terrain mesh.
      */
     public static resolveTectonicDeformation(
         centerX: number, 
@@ -13,10 +12,15 @@ export class SeismicManager {
         severity: number, 
         radius: number,
         terrainMap: TerrainSearchMap,
-        gameMap: any
+        gameMap: any,
+        game: GameImpl
     ) {
         console.warn(`[SEISMIC ALERT] Magnitude ${severity * 10} equivalent earthquake detected at ${centerX},${centerY}`);
 
+        // 1. Tsunami Check (If epicenter is deep water, trigger kinetic wave instead of just ground deformation)
+        TsunamiManager.propagateTsunami(centerX, centerY, severity, terrainMap, gameMap, game.getUnits());
+
+        // 2. Ground Deformation
         for (let dy = -radius; dy <= radius; dy++) {
             for (let dx = -radius; dx <= radius; dx++) {
                 const distance = Math.sqrt(dx * dx + dy * dy);
@@ -28,24 +32,15 @@ export class SeismicManager {
                         const falloff = 1.0 - (distance / radius);
                         const destructionPower = severity * falloff;
 
-                        // 1. Destroy Infrastructure (Roads, Rails, Bridges)
+                        // Destroy Infrastructure
                         const tile = gameMap.getTile(nx, ny);
-                        if (tile && tile.hasRoad && destructionPower > 0.4) {
-                            tile.hasRoad = false; // Road severed
-                        }
-                        if (tile && tile.hasRail && destructionPower > 0.6) {
-                            tile.hasRail = false; // Train logistics severed
-                        }
+                        if (tile && tile.hasRoad && destructionPower > 0.4) tile.hasRoad = false;
+                        if (tile && tile.hasRail && destructionPower > 0.6) tile.hasRail = false;
 
-                        // 2. Permanently deform the A* base traversal cost
-                        // The terrain becomes a jagged "Fault Line" making it incredibly
-                        // slow for armor/tanks to traverse.
+                        // Permanently deform the A* base traversal cost
                         if (destructionPower > 0.5) {
                             const index = ny * terrainMap.width + nx;
                             const currentCost = terrainMap.getBaseCost(index);
-                            
-                            // Increase pathfinding cost by 3x (simulating rubble/fissures)
-                            // 255 is impassable (deep water), cap at 200 so infantry can still slowly climb it.
                             terrainMap.setBaseCost(index, Math.min(200, currentCost * 3));
                         }
                     }
