@@ -1,0 +1,5 @@
+// capsule/src/main.rs (Patch)
+// Add to the main setup block:
+// let mut infra = infrastructure::InfrastructureMatrix::new();
+// let geo_json = cache.fetch_or_cache("telegeography", WorldMonitorEndpoints::UNDERSEA_CABLES_GEOJSON, 86400).await.unwrap();
+// infra.load_landing_stations(&geo_json, &bounds);

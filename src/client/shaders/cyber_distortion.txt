@@ -1,0 +1,20 @@
+// Append to multi_lens.frag from Batch 3
+
+// Inside the uActiveLens == 1 (Cyber) block:
+/*
+    // Complete NetBlocks UI Distortion
+    if (severity > 0.8) {
+        // RGB split / Chromatic Aberration indicating full signal loss
+        float r = texture2D(uSampler, vTextureCoord + vec2(0.01, 0.0)).r;
+        float g = texture2D(uSampler, vTextureCoord).g;
+        float b = texture2D(uSampler, vTextureCoord + vec2(-0.01, 0.0)).b;
+        
+        baseColor = vec4(r, g, b, 1.0);
+        
+        // Scanline wipe
+        float wipe = sin(vTextureCoord.y * 50.0 + uTime * 20.0);
+        if (wipe > 0.9) {
+            baseColor.rgb = vec3(0.0, 1.0, 0.0); // Harsh green flash
+        }
+    }
+*/
