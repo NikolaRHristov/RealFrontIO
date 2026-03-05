@@ -1,16 +1,27 @@
-import { RealFrontAdapter } from './RealFrontAdapter';
-import { ConflictManager } from './ConflictManager';
+import { GameMode } from './Lobby';
+// ... 
 
-// ... existing adapter code ...
-
-    public onTick() {
-        this.gameRunner.update();
-
-        // [BATCH 4 NEW] Spawn rogue armies based on live ACLED wars
-        ConflictManager.resolveAcledSpawns(this.game, this.terrainMap, Math.floor(Date.now() / 100));
-
-        const allUnits = this.game.getAllUnits ? this.game.getAllUnits() : [];
-        for (const unit of allUnits) {
-            this.applyHazardConsequencesToUnit(unit as any);
+export class RealFrontAdapter {
+    // ...
+    public async initializeGrpcStream(mode: GameMode, historicalConfig?: any) {
+        if (mode === GameMode.LIVE_INTELLIGENCE) {
+            // Subscribe to the standard Broadcast stream
+            this.grpcClient.SubscribeToWorldEvents({ server_id: "Node-1", current_tick: 0 })
+                .on('data', (batch: any) => this.gameRunner.queueWorldEvents(batch));
+        } else if (mode === GameMode.HISTORICAL && historicalConfig) {
+            // Initiate the Time-Travel stream
+            console.log(`[REALFRONT] Booting Historical Scenario starting at ${new Date(historicalConfig.startMs).toISOString()}`);
+            
+            this.grpcClient.SubscribeToHistoricalEvents({
+                server_id: "Node-1",
+                start_epoch_ms: historicalConfig.startMs,
+                end_epoch_ms: historicalConfig.endMs,
+                playback_speed_multiplier: historicalConfig.speed // e.g. 24x to play a day in 1 hour
+            }).on('data', (batch: any) => {
+                // The GameRunner doesn't know it's historical; it processes 
+                // the WGS84 events exactly as if they were live.
+                this.gameRunner.queueWorldEvents(batch);
+            });
         }
     }
+}

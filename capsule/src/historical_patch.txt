@@ -1,0 +1,48 @@
+// capsule/src/main.rs (Patch logic for historical endpoint)
+use std::pin::Pin;
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
+use tonic::{Request, Response, Status};
+
+// Inside the MonitorService implementation:
+
+    type SubscribeToHistoricalEventsStream = Pin<Box<dyn tokio_stream::Stream<Item = Result<TickEventBatch, Status>> + Send>>;
+
+    async fn subscribe_to_historical_events(
+        &self,
+        request: Request<HistoricalSubscribeRequest>,
+    ) -> Result<Response<Self::SubscribeToHistoricalEventsStream>, Status> {
+        let req = request.into_inner();
+        let db = self.telemetry_db.clone();
+        
+        let (tx, rx) = mpsc::channel(128);
+
+        tokio::spawn(async move {
+            println!("[CAPSULE] Initiating Historical Playback from {} to {} at {}x speed", req.start_epoch_ms, req.end_epoch_ms, req.playback_speed_multiplier);
+            
+            // Chunk the historical data by simulated game ticks
+            let events = db.fetch_historical_window(req.start_epoch_ms, req.end_epoch_ms).await;
+            
+            let mut current_simulated_tick = 0;
+            
+            // Send in batches of 10 to simulate live stream density
+            for chunk in events.chunks(10) {
+                let batch = TickEventBatch {
+                    game_tick: current_simulated_tick,
+                    events: chunk.to_vec(),
+                };
+                
+                if tx.send(Ok(batch)).await.is_err() {
+                    break; // Client disconnected
+                }
+                
+                current_simulated_tick += 1;
+                
+                // Real-time delay divided by the requested playback speed multiplier
+                let delay = tokio::time::Duration::from_millis((1000.0 / req.playback_speed_multiplier) as u64);
+                tokio::time::sleep(delay).await;
+            }
+        });
+
+        Ok(Response::new(Box::pin(ReceiverStream::new(rx))))
+    }
