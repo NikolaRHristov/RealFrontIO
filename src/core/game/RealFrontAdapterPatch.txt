@@ -1,0 +1,25 @@
+import { SeismicManager } from './SeismicManager';
+import { EcologicalManager } from './EcologicalManager';
+// ... existing imports ...
+
+// Inside RealFrontAdapter.ts onTick loop:
+// ...
+        const tickEvents = this.gameRunner.getBufferedEvents(currentTick);
+        if (tickEvents) {
+            for (const event of tickEvents) {
+                switch(event.category) {
+                    case 'HAZARD_EARTHQUAKE':
+                        // Instantly deform the A* pathfinding graph
+                        SeismicManager.resolveTectonicDeformation(
+                            event.center_x, event.center_y, 
+                            event.severity, event.radius, 
+                            this.terrainMap, this.game.map
+                        );
+                        break;
+                    case 'HAZARD_WILDFIRE':
+                        EcologicalManager.applyWildfire(event, this.terrainMap, this.game.map);
+                        break;
+                }
+            }
+        }
+// ...
